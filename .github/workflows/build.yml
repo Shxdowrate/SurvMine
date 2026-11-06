@@ -22,15 +22,18 @@ jobs:
           set +e
           ./gradlew build --no-daemon --console=plain > build.log 2>&1
           echo "code=$?" >> "$GITHUB_OUTPUT"
-          tail -n 80 build.log
-      - name: Publish build log to ci-log branch
-        if: always()
+          grep -E "error:|warning:|FAIL|BUILD|Exception" build.log | head -n 600
+          tail -n 40 build.log
+      - name: API signatures (dev reference)
+        if: hashFiles('.ci/javap.txt') != ''
         run: |
-          mkdir -p logout
-          cp build.log logout/ 2>/dev/null || echo "no log" > logout/build.log
-          echo "${{ steps.build.outputs.code }} ${{ github.sha }}" > logout/status.txt
-          cd logout && git init -q && git checkout -q -b ci-log && git add . && git -c user.name=ci -c user.email=ci@local commit -qm log
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-log
+          JAR=$(find ~/.gradle .gradle -name 'minecraft-*.jar' ! -name '*sources*' 2>/dev/null | grep -E 'merged|common|clientOnly|client' | head -n 5 | tr '\n' ':')
+          echo "classpath: $JAR"
+          if [ -f .ci/find.txt ]; then
+            for j in $(echo "$JAR" | tr ':' ' '); do unzip -Z1 "$j" | grep '\.class$' | grep -v '\$' > classes_$(basename "$j").txt; done
+            grep -v '^\s*$' .ci/find.txt | while read -r p; do echo "== find $p"; cat classes_*.txt | grep -E "$p" | head -n 40; done
+          fi
+          grep -v '^#' .ci/javap.txt | grep -v '^\s*$' | while read -r c; do javap -public -cp "$JAR" "$c" 2>&1 | grep -v "^Compiled from" ; done
       - name: Release jar
         if: steps.build.outputs.code == '0'
         env:
