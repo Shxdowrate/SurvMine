@@ -33,7 +33,7 @@ jobs:
             for j in $(echo "$JAR" | tr ':' ' '); do unzip -Z1 "$j" | grep '\.class$' | grep -v '\$' > classes_$(basename "$j").txt; done
             grep -v '^\s*$' .ci/find.txt | while read -r p; do echo "== find $p"; cat classes_*.txt | grep -E "$p" | head -n 40; done
           fi
-          grep -v '^#' .ci/javap.txt | grep -v '^\s*$' | while read -r c; do javap -public -cp "$JAR" "$c" 2>&1 | grep -v "^Compiled from" ; done
+          grep -v '^#' .ci/javap.txt | grep -v '^\s*$' | while read -r c; do javap -protected -cp "$JAR" "$c" 2>&1 | grep -v "^Compiled from" ; done
       - name: Release jar
         if: steps.build.outputs.code == '0'
         env:
