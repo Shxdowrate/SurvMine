@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "survmine",
+	"version": "${version}",
+	"name": "SurvMine",
+	"description": "Зомби-выживание: крепость, поселенцы, оружие и турели.",
+	"authors": ["Shxdowrate"],
+	"license": "All-Rights-Reserved",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["ru.survmine.SurvMine"],
+		"client": ["ru.survmine.client.SurvMineClient"]
+	},
+	"mixins": [
+		"survmine.mixins.json",
+		{ "config": "survmine.client.mixins.json", "environment": "client" }
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~26.1",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
